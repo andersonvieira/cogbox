@@ -18,6 +18,7 @@ returned.
 from __future__ import division
 import numpy
 
+__author__ = "Anderson Vieira"
 
 class SparseDistributedMemory(object):
     """
@@ -156,8 +157,3 @@ class SparseDistributedMemory(object):
             previous_word = word
             word = self.retrieve(previous_word)
         return word
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
