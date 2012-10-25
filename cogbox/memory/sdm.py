@@ -18,6 +18,8 @@ returned.
 from __future__ import division
 import numpy
 
+import memory_helper
+
 __author__ = "Anderson Vieira"
 
 class SparseDistributedMemory(object):
@@ -41,56 +43,12 @@ class SparseDistributedMemory(object):
         :type word_length: int
         :type activation_radius: int
         """
-        self.hard_addresses = SparseDistributedMemory.convert(
+        self.hard_addresses = memory_helper.convert(
             numpy.random.randint(0, 2, (memory_size, address_length)))
         self.activation_threshold = address_length - 2 * activation_radius
         self.counter_range = numpy.ones(word_length) * 15
         self.content = numpy.zeros((memory_size, word_length),
                                    dtype=numpy.int16)
-
-    @staticmethod
-    def convert(array):
-        """
-        Convert an array from {0, 1} to {-1, 1}
-        :param array: an array in {0, 1}
-        :type array: array
-        :returns: 2 * array - 1
-        :rtype: array
-
-        :Example:
-        >>> import numpy
-        >>> import sdm
-        >>> sdm.SparseDistributedMemory.convert(numpy.array([0, 1, 0, 0, 1]))
-        array([-1,  1, -1, -1,  1])
-        """
-        return 2 * array - 1
-
-    @staticmethod
-    def add_noise(word, prob):
-        """
-        Add uniform noise to a word in {0, 1} according to a given
-        probability.
-
-        :param word: an array in {0, 1}
-        :param probability: a value between 0 and 1
-        :type array: array
-        :type probability: int, float
-        :rtype: array
-
-        :Example:
-        >>> import numpy
-        >>> import sdm
-        >>> sdm.SparseDistributedMemory.add_noise(numpy.array([0, 1, 0, 0, 1]), 0)
-        array([0, 1, 0, 0, 1])
-
-        :Example:
-        >>> import numpy
-        >>> import sdm
-        >>> sdm.SparseDistributedMemory.add_noise(numpy.array([0, 1, 0, 0, 1]), 1)
-        array([1, 0, 1, 1, 0])
-        """
-        return numpy.bitwise_xor(word,
-                                 numpy.random.uniform(0, 1, len(word)) < prob)
 
     def _active_locations(self, address):
         """
@@ -101,7 +59,7 @@ class SparseDistributedMemory(object):
         :rtype: array
         """
         return (numpy.inner(self.hard_addresses,
-                            SparseDistributedMemory.convert(address)) >=
+                            memory_helper.convert(address)) >=
                 self.activation_threshold)
 
     def store(self, address, word):
@@ -115,7 +73,7 @@ class SparseDistributedMemory(object):
         """
         active = self._active_locations(address)
         self.content[active] = numpy.clip(
-            self.content[active] + SparseDistributedMemory.convert(word),
+            self.content[active] + memory_helper.convert(word),
             -self.counter_range,
             self.counter_range)
 
@@ -139,8 +97,8 @@ class SparseDistributedMemory(object):
         :param word: array of bits {0, 1}
         """
         for _ in xrange(repeat):
-            self.store(SparseDistributedMemory.add_noise(address, error),
-                       SparseDistributedMemory.add_noise(word, error))
+            self.store(memory_helper.add_noise(address, error),
+                       memory_helper.add_noise(word, error))
 
     def remember(self, address):
         """
