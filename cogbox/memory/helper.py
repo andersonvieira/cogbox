@@ -39,21 +39,37 @@ def add_noise(array, prob):
 
     :Example:
     >>> import numpy
-    >>> import memory_helper
-    >>> memory_helper.add_noise(numpy.array([0, 1, 0, 0, 1]), 0)
+    >>> import helper
+    >>> helper.add_noise(numpy.array([0, 1, 0, 0, 1]), 0)
     array([0, 1, 0, 0, 1])
 
     :Example:
     >>> import numpy
-    >>> import memory_helper
-    >>> memory_helper.add_noise(numpy.array([0, 1, 0, 0, 1]), 1)
+    >>> import helper
+    >>> helper.add_noise(numpy.array([0, 1, 0, 0, 1]), 1)
     array([1, 0, 1, 1, 0])
     """
     return numpy.bitwise_xor(array,
                              numpy.random.uniform(0, 1, len(array)) < prob)
 
-array_examples = dict()
-array_examples['X'] = numpy.array(
+def bitify(array):
+    """
+    Convert an array from {-1, 1} to {0, 1}
+    :param array: an array in {-1, 1}
+    :type array: array
+    :returns: 
+    :rtype: array
+
+    :Example:
+    >>> import numpy
+    >>> import helper
+    >>> helper.convert(numpy.array([-1, 1, -1, -1, 1]))
+    array([0,  1, 0, 0,  1])
+    """
+    return numpy.clip(array, 0, 1)
+
+example_patterns = dict()
+example_patterns['X'] = numpy.array(
     [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
      1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
      0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0,
@@ -71,7 +87,7 @@ array_examples['X'] = numpy.array(
      1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
      1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1])
 
-array_examples['S'] = numpy.array(
+example_patterns['S'] = numpy.array(
     [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
      0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
      0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

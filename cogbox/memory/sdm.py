@@ -18,17 +18,21 @@ returned.
 from __future__ import division
 import numpy
 
-import memory_helper
+import cogbox.memory.helper as helper
 
 __author__ = "Anderson Vieira"
 
 class SparseDistributedMemory(object):
     """
-    Attributes:
-    :hard_addresses: storage
-    :activation_threshold: activation threshold on similarity
-    :counter_range: range of the counter in the contents matrix
-    :contents: memory content
+    Public methods:
+    store -- Stores a pattern in the memory according to a given address
+    retrieve -- Given an address, retrieve the corresponding pattern
+    
+    Instance variables:
+    hard_addresses -- addresses to access the memory
+    activation_threshold -- activation threshold based on similarity
+    counter_range -- range of the counter in the contents matrix
+    content -- memory content
     """
 
     def __init__(self, memory_size, address_length, word_length,
@@ -43,7 +47,7 @@ class SparseDistributedMemory(object):
         :type word_length: int
         :type activation_radius: int
         """
-        self.hard_addresses = memory_helper.convert(
+        self.hard_addresses = helper.convert(
             numpy.random.randint(0, 2, (memory_size, address_length)))
         self.activation_threshold = address_length - 2 * activation_radius
         self.counter_range = numpy.ones(word_length) * 15
@@ -55,11 +59,11 @@ class SparseDistributedMemory(object):
         Return a list containing the indices of the activated locations.
 
         :param address: array of bits in {0, 1}
-        :type address: array
-        :rtype: array
+        :type address: numpy.array
+        :rtype: numpy.array
         """
         return (numpy.inner(self.hard_addresses,
-                            memory_helper.convert(address)) >=
+                            helper.convert(address)) >=
                 self.activation_threshold)
 
     def store(self, address, word):
@@ -68,12 +72,12 @@ class SparseDistributedMemory(object):
 
         :param address: array of bits in {0, 1}
         :param word: array of bits in {0, 1}
-        :type address: array
-        :type word: array
+        :type address: numpy.array
+        :type word: numpy.array
         """
         active = self._active_locations(address)
         self.content[active] = numpy.clip(
-            self.content[active] + memory_helper.convert(word),
+            self.content[active] + helper.convert(word),
             -self.counter_range,
             self.counter_range)
 
@@ -82,36 +86,8 @@ class SparseDistributedMemory(object):
         Retrieve a word stored in the memory given an address.
 
         :param address: array of bits in {0, 1}
-        :type address: array
-        :rtype: array
+        :type address: numpy.array
+        :rtype: numpy.array
         """
         return numpy.clip(
             sum(self.content[self._active_locations(address)]), 0, 1)
-
-    def train(self, address, word, repeat=10, error=0.2):
-        """
-        Add random noise to a word several times and store the different
-        versions in the memory.
-
-        :param address: array of bits {0, 1}
-        :param word: array of bits {0, 1}
-        """
-        for _ in xrange(repeat):
-            self.store(memory_helper.add_noise(address, error),
-                       memory_helper.add_noise(word, error))
-
-    def remember(self, address):
-        """
-        Retrieve a word from the memory and use it as the address for
-        the following retrieval. Repeat until the pattern converges.
-
-        :param address: array of bits {0, 1}
-        :type address: array
-        :rtype: array
-        """
-        word = self.retrieve(address)
-        previous_word = numpy.zeros(len(word))
-        while word != previous_word:
-            previous_word = word
-            word = self.retrieve(previous_word)
-        return word
