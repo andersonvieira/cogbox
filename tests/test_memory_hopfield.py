@@ -20,25 +20,25 @@ class Test(unittest.TestCase):
         Test if a pattern is retrieved correctly after being stored
         """
         memory = hopfield.HopfieldMemory()
-        memory.store(numpy.array([helper.example_patterns['X']]))
+        memory.store(numpy.array([helper.EXAMPLE_PATTERNS['X']]))
         self.assertTrue(numpy.array_equal(
-            memory.retrieve(helper.example_patterns['X']), 
-            helper.example_patterns['X']))
+            memory.retrieve(helper.EXAMPLE_PATTERNS['X']), 
+            helper.EXAMPLE_PATTERNS['X']))
 
     def test_double_retrieve(self):
         """
         Test if two patterns are retrieved correctly after being stored
         """
         memory = hopfield.HopfieldMemory()
-        memory.store(numpy.vstack((helper.example_patterns['X'],
-                                   helper.example_patterns['S'])))
+        memory.store(numpy.vstack((helper.EXAMPLE_PATTERNS['X'],
+                                   helper.EXAMPLE_PATTERNS['S'])))
 
         self.assertTrue(numpy.array_equal(
-            memory.retrieve(helper.example_patterns['X']), 
-            helper.example_patterns['X']))
+            memory.retrieve(helper.EXAMPLE_PATTERNS['X']), 
+            helper.EXAMPLE_PATTERNS['X']))
         self.assertTrue(numpy.array_equal(
-            memory.retrieve(helper.example_patterns['S']), 
-            helper.example_patterns['S']))
+            memory.retrieve(helper.EXAMPLE_PATTERNS['S']), 
+            helper.EXAMPLE_PATTERNS['S']))
 
 if __name__ == "__main__":
     unittest.main()

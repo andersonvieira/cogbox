@@ -22,12 +22,13 @@ import cogbox.memory.helper as helper
 
 __author__ = "Anderson Vieira"
 
+
 class SparseDistributedMemory(object):
     """
     Public methods:
     store -- Stores a pattern in the memory according to a given address
     retrieve -- Given an address, retrieve the corresponding pattern
-    
+
     Instance variables:
     hard_addresses -- addresses to access the memory
     activation_threshold -- activation threshold based on similarity

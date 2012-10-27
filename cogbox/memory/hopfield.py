@@ -32,7 +32,7 @@ class HopfieldMemory(object):
     def store(self, words):
         """
         Store a stack of words in the memory.
-        Importat: Everytime this method is called it clears the content of 
+        Importat: Everytime this method is called it clears the content of
         the memory and add the new content based on the words parameter.
 
         :param words: a matrix in which each line is a word in {0, 1}

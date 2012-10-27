@@ -10,6 +10,7 @@ import numpy
 
 __author__ = "Anderson Vieira"
 
+
 def convert(array):
     """
     Convert an array from {0, 1} to {-1, 1}
@@ -25,6 +26,7 @@ def convert(array):
     array([-1,  1, -1, -1,  1])
     """
     return 2 * array - 1
+
 
 def add_noise(array, prob):
     """
@@ -52,12 +54,13 @@ def add_noise(array, prob):
     return numpy.bitwise_xor(array,
                              numpy.random.uniform(0, 1, len(array)) < prob)
 
+
 def bitify(array):
     """
     Convert an array from {-1, 1} to {0, 1}
     :param array: an array in {-1, 1}
     :type array: array
-    :returns: 
+    :returns: numpy.clip(array, 0, 1)
     :rtype: array
 
     :Example:
@@ -68,8 +71,8 @@ def bitify(array):
     """
     return numpy.clip(array, 0, 1)
 
-example_patterns = dict()
-example_patterns['X'] = numpy.array(
+EXAMPLE_PATTERNS = dict()
+EXAMPLE_PATTERNS['X'] = numpy.array(
     [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
      1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
      0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0,
@@ -87,7 +90,7 @@ example_patterns['X'] = numpy.array(
      1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
      1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1])
 
-example_patterns['S'] = numpy.array(
+EXAMPLE_PATTERNS['S'] = numpy.array(
     [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
      0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
      0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
