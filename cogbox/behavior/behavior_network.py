@@ -6,7 +6,6 @@ Implementation of the a Behavior Network based on Maes, P. (1989)
 How To Do The Right Thing
 """
 from __future__ import division
-import numpy
 
 __author__ = "Anderson Vieira"
 
@@ -27,8 +26,8 @@ class Behavior(object):
     executable -- true when the behavior can be executed
     """
 
-    def __init__(self, label, action, preconditions=set(), additions=set(),
-                 deletions=set()):
+    def __init__(self, label, action, preconditions=frozenset(),
+                 additions=frozenset(), deletions=frozenset()):
         """
         :param label: label of the behavior
         :param action: action that runs when the behavior is executed
@@ -64,6 +63,30 @@ class Behavior(object):
         Return the label of the behavior when printing a list.
         """
         return self.__str__()
+
+    def __gt__(self, other):
+        if other is None:
+            return True
+        else:
+            return self.current_activation > other.current_activation
+
+    def __lt__(self, other):
+        if other is None:
+            return False
+        else:
+            return self.current_activation < other.current_activation
+
+    def __ge__(self, other):
+        if other is None:
+            return True
+        else:
+            return self.current_activation >= other.current_activation
+
+    def __le__(self, other):
+        if other is None:
+            return False
+        else:
+            return self.current_activation <= other.current_activation
 
     def execute(self):
         """
@@ -102,7 +125,8 @@ class State(object):
     goals -- the goals of the agent
     protected_goals -- the protected goals that were accomplished
     """
-    def __init__(self, data=set(), goals=set(), protected_goals=set()):
+    def __init__(self, data=frozenset(), goals=frozenset(),
+                 protected_goals=frozenset()):
         self.data = data
         self.goals = goals
         self.protected_goals = protected_goals
@@ -188,7 +212,6 @@ class Network(object):
         """
         return [behavior for behavior in self.behaviors
                 if item in behavior.deletions]
-
 
     def mean_activation(self):
         """
@@ -420,16 +443,16 @@ class Network(object):
         >>> net.take_away(taker, source_conf, state)
         0.0
         """
-        if (taker.previous_activation < source.previous_activation and
-            len(state.data & source.preconditions & taker.deletions) > 0):
-            return 0.0 
+        if ((taker.previous_activation < source.previous_activation) and
+                len(state.data & source.preconditions & taker.deletions) > 0):
+            return 0.0
         else:
             return (taker.previous_activation *
                     (self.energy.conf / self.energy.goals) *
                     sum([(1. / len(self.behaviors_that_delete(item))) *
                          (1. / len(source.deletions))
                          for item in
-                         taker.preconditions & source.deletions & 
+                         taker.preconditions & source.deletions &
                          state.data]))
 
     def behavior_spread(self, target, state):
@@ -444,21 +467,22 @@ class Network(object):
 
         :Example:
         >>> import behavior_network as bn
-        >>> dest = bn.Behavior("dest", None, set(["pre"]), set(["add"]), set(["del"]))
+        >>> target = bn.Behavior("t0", None, set(["pre"]), set(["add"]), \
+                set(["del"]))
         >>> b1 = bn.Behavior("b1", None, preconditions=set(["add"]))
         >>> b2 = bn.Behavior("b2", None, additions=set(["pre"]))
         >>> b3 = bn.Behavior("b3", None, preconditions=set(["del"]))
-        >>> dest.previous_activation = 5.0
+        >>> target.previous_activation = 5.0
         >>> b1.previous_activation = 10.0
         >>> b2.previous_activation = 10.0
         >>> b3.previous_activation = 10.0
-        >>> net = Network([dest, b1, b2, b3])
+        >>> net = Network([target, b1, b2, b3])
         >>> state = State(data=set(["del"]))
-        >>> backwards = net.spread_backwards(b1, dest, state)
-        >>> forward = net.spread_forward(b2, dest, state)
-        >>> taken = net.take_away(b3, dest, state)
+        >>> backwards = net.spread_backwards(b1, target, state)
+        >>> forward = net.spread_forward(b2, target, state)
+        >>> taken = net.take_away(b3, target, state)
         >>> total = backwards + forward - taken
-        >>> net.behavior_spread(dest, state) == total
+        >>> net.behavior_spread(target, state) == total
         True
         """
         return sum([(self.spread_backwards(behavior, target, state) +
@@ -466,23 +490,123 @@ class Network(object):
                      self.take_away(behavior, target, state))
                     for behavior in self.behaviors if behavior != target])
 
-    def decay(self, behavior):
+    def relax(self):
         """
-        Decrease previous activation.
+        Lower the total activation of the network so that the mean
+        activation is less than or equal to the value given by
+        self.energy.mean. Also set the value of the previous activation
+        to be equal to the current activation for each behavior.
 
-        :param behavior: Behavior which activation will be decreased
-        :type behavior: Behavior
-        :return: decreased previous activation
-        :rtype: float
-
+        :Example:
         >>> import behavior_network as bn
-        >>> behavior = bn.Behavior("b", None)
-        >>> behavior.previous_activation = 10.0
-        >>> net = bn.Network([behavior])
-        >>> net.decay(behavior)
-        9.0
+        >>> b0 = bn.Behavior("b0", None)
+        >>> b1 = bn.Behavior("b1", None)
+        >>> b2 = bn.Behavior("b2", None)
+        >>> b3 = bn.Behavior("b3", None)
+        >>> net = Network([b0, b1, b2, b3])
+        >>> b0.current_activation = 20.0
+        >>> b1.current_activation = 25.0
+        >>> b2.current_activation = 15.0
+        >>> b3.current_activation = 10.0
+        >>> net.mean_activation()
+        17.5
+        >>> b2.current_activation = 40.0
+        >>> b3.current_activation = 35.0
+        >>> net.mean_activation() <= net.energy.mean
+        False
+        >>> net.relax()
+        >>> net.mean_activation() <= net.energy.mean
+        True
         """
-        return 0.9 * behavior.previous_activation 
+        current_mean_activation = self.mean_activation()
+        if current_mean_activation > self.energy.mean:
+            for behavior in self.behaviors:
+                behavior.current_activation *= (self.energy.mean /
+                                                current_mean_activation)
+                behavior.previous_activation = behavior.current_activation
+
+    def update_behaviors(self, state):
+        """
+        Check which behaviors are executable and set their executable
+        attribute accordingly. Update the behaviors activation energies.
+        """
+        for behavior in self.behaviors:
+            behavior.executable = (behavior.preconditions <=
+                                   (state.data | state.protected_goals))
+            behavior.current_activation = max(
+                ((0.9 * behavior.previous_activation) +
+                 self.input_from_data(behavior, state) +
+                 self.input_from_goals(behavior, state) -
+                 self.taken_by_protected_goals(behavior, state) +
+                 self.behavior_spread(behavior, state)),
+                0)
+        self.relax()
+
+    def active(self, behavior):
+        """
+        Return true if a behavior should be active regardless of the
+        other behaviors in the network.
+
+        :param behavior: behavior to check
+        :type behavior: Behavior
+        :return: true of a behavior should be active
+        :rtype: bool
+
+        :Example:
+        >>> import behavior_network as bn
+        >>> b0 = bn.Behavior("b0", None, preconditions=set(["foo"]))
+        >>> b1 = bn.Behavior("b1", None, preconditions=set(["bar"]))
+        >>> b2 = bn.Behavior("b2", None, preconditions=set(["foo"]))
+        >>> b3 = bn.Behavior("b3", None, preconditions=set())
+        >>> net = Network([b0, b1, b2, b3])
+        >>> net.threshold = 20.0
+        >>> net.update_behaviors(State(data=set(["foo"])))
+        >>> b0.current_activation = 25.0
+        >>> b1.current_activation = 25.0
+        >>> b2.current_activation = 15.0
+        >>> b3.current_activation = 25.0
+        >>> net.active(b0)
+        True
+        >>> net.active(b1)
+        False
+        >>> net.active(b2)
+        False
+        >>> net.active(b3)
+        True
+        """
+        return (behavior.executable and
+                behavior.current_activation >= self.threshold)
+
+    def active_behavior(self):
+        """
+        Search for a behavior that satisfies the three conditions below:
+        i) the behavior is executable (all its preconditions are satisfied)
+        ii) the behavior activation is greater than the threshold
+        iii) the behavior has the greates activation among those that
+             satisfy (i) and (ii)
+        If no such behavior is found, return None
+
+        :Example:
+        >>> import behavior_network as bn
+        >>> b0 = bn.Behavior("b0", None, set(["foo"]), set(["bar"]))
+        >>> b1 = bn.Behavior("b1", None, preconditions=set(["bar"]))
+        >>> b2 = bn.Behavior("b2", None, preconditions=set(["foo"]))
+        >>> b3 = bn.Behavior("b3", None, set(["bar"]), set(["bar"]))
+        >>> net = Network([b0, b1, b2, b3])
+        >>> net.threshold = 5.0
+        >>> b0.current_activation = 15.0
+        >>> b1.current_activation = 15.0
+        >>> b2.current_activation = 15.0
+        >>> b3.current_activation = 15.0
+        >>> net.update_behaviors(State(data=set(["foo"]), goals=set(["bar"])))
+        >>> net.active_behavior()
+        b0
+        >>> net.update_behaviors(State())
+        >>> net.active_behavior() is None
+        True
+        """
+        return max([behavior for behavior in self.behaviors
+                    if self.active(behavior)] + [None])
 
 if __name__ == "__main__":
     import doctest
