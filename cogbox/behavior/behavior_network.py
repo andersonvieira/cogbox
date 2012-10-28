@@ -38,16 +38,16 @@ class Behavior(object):
         :param deletions: items deleted from the world state when the
         behavior is executed
         :type label: string
-        :type action: action
+        :type action: Action
         :type preconditions: set
         :type additions: set
         :type deletions: set
         """
         self.label = label
-        self.action = action
-        self.preconditions = preconditions
-        self.additions = additions
-        self.deletions = deletions
+        self._action = action
+        self._preconditions = preconditions
+        self._additions = additions
+        self._deletions = deletions
         self.previous_activation = 0.0
         self.current_activation = 0.0
         self.executable = False
@@ -88,6 +88,66 @@ class Behavior(object):
         else:
             return self.current_activation <= other.current_activation
 
+    @property
+    def preconditions(self):
+        """
+        Getter for the behavior preconditions. Since the preconditions
+        should be immutable, no setter is defined.
+
+        :Example:
+        >>> import behavior_network as bn
+        >>> behavior = bn.Behavior('b', None)
+        >>> behavior.preconditions == frozenset()
+        True
+        >>> behavior.preconditions = "not allowed"
+        Traceback (most recent call last):
+            ...
+        AttributeError: can't set attribute
+        >>> behavior.preconditions == frozenset()
+        True
+        """
+        return self._preconditions
+
+    @property
+    def additions(self):
+        """
+        Getter for the behavior additions. Since the additions
+        should be immutable, no setter is defined.
+
+        :Example:
+        >>> import behavior_network as bn
+        >>> behavior = bn.Behavior('b', None)
+        >>> behavior.additions == frozenset()
+        True
+        >>> behavior.additions = "not allowed"
+        Traceback (most recent call last):
+            ...
+        AttributeError: can't set attribute
+        >>> behavior.additions == frozenset()
+        True
+        """
+        return self._additions
+
+    @property
+    def deletions(self):
+        """
+        Getter for the behavior deletions. Since the deletions
+        should be immutable, no setter is defined.
+
+        :Example:
+        >>> import behavior_network as bn
+        >>> behavior = bn.Behavior('b', None)
+        >>> behavior.deletions == frozenset()
+        True
+        >>> behavior.deletions = "test"
+        Traceback (most recent call last):
+            ...
+        AttributeError: can't set attribute
+        >>> behavior.deletions == frozenset()
+        True
+        """
+        return self._deletions
+
     def execute(self):
         """
         Resets the current activation level of the behavior and executes
@@ -95,7 +155,7 @@ class Behavior(object):
         """
         assert self.executable is True
         self.current_activation = 0
-        self.action.execute()
+        self._action.execute()
 
 
 class Energy(object):
