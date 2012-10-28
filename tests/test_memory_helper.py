@@ -9,11 +9,11 @@ import cogbox.memory.helper as helper
 
 
 class Test(unittest.TestCase):
-    """Unit tests for the Sparse Distributed Memory"""
+    """Unit tests for the Memory Helper"""
 
 
     def test_doctests(self):
-        """Run sdm doctests"""
+        """Run memory helper doctests"""
         doctest.testmod(helper)
 
 if __name__ == "__main__":

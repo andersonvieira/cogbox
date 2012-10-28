@@ -21,8 +21,8 @@ def convert(array):
 
     :Example:
     >>> import numpy
-    >>> import memory_helper
-    >>> memory_helper.convert(numpy.array([0, 1, 0, 0, 1]))
+    >>> import helper
+    >>> helper.convert(numpy.array([0, 1, 0, 0, 1]))
     array([-1,  1, -1, -1,  1])
     """
     return 2 * array - 1
@@ -66,8 +66,8 @@ def bitify(array):
     :Example:
     >>> import numpy
     >>> import helper
-    >>> helper.convert(numpy.array([-1, 1, -1, -1, 1]))
-    array([0,  1, 0, 0,  1])
+    >>> helper.bitify(numpy.array([-1, 1, -1, -1, 1]))
+    array([0, 1, 0, 0, 1])
     """
     return numpy.clip(array, 0, 1)
 
@@ -107,3 +107,8 @@ EXAMPLE_PATTERNS['S'] = numpy.array(
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
      0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
      0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0])
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

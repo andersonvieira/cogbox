@@ -53,7 +53,7 @@ class SparseDistributedMemory(object):
         self.activation_threshold = address_length - 2 * activation_radius
         self.counter_range = numpy.ones(word_length) * 15
         self.content = numpy.zeros((memory_size, word_length),
-                                   dtype=numpy.int16)
+                                   dtype=numpy.int8)
 
     def _active_locations(self, address):
         """
