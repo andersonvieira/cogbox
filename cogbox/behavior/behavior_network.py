@@ -608,6 +608,23 @@ class Network(object):
         return max([behavior for behavior in self.behaviors
                     if self.active(behavior)] + [None])
 
+    def run(self, state):
+        """
+        Call update_behaviors() to update the activavion and status of
+        the behaviors.
+        Call active_behavior() to get an active behavior.
+        If active_behavior() returns None, lower the threshold by 10%
+        else, call behavior.act() and set the threshold back to max
+        """
+        self.update_behaviors(state)
+        behavior = self.active_behavior()
+        if behavior is None:
+            self.threshold *= 0.9
+        else:
+            behavior.execute()
+            self.threshold = self.max_threshold
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
